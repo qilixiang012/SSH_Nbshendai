@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="/extjs/resources/css/ext-all.css"/>
+    <script type="text/javascript" src="/extjs/ext-all.js"/>
+    <script type="text/javascript" src="/extjs/bootstrap.js"></script>
+    <script type="text/javascript" src="/extjs/locale/ext-lang-zh_CN.js"></script>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript">
+        Ext.onReady(function () {
+            Ext.create('Ext.grid.Panel', {
+                title: '用户详情',
+                renderTo: Ext.getBody(),
+                width: 400,
+                height: 170,
+                frame: true,
+                store: {
+                    fields: ['username', 'email', 'mobile', 'loginPassword'],
+                    proxy: {
+                        type: 'ajax',
+                        url: '/json',
+                        reader: {
+                            type: 'json',
+                            root: 'user'
+                        }
+                    },
+                    autoLoad: true
+                },
+                columns: [
+                    new Ext.grid.RowNumberer(),
+                    {header: "用户名", width: 80, dataIndex: 'username', sortable: true},
+                    {header: "邮箱", width: 80, dataIndex: 'email', sortable: true},
+                    {header: "手机", width: 80, dataIndex: 'mobile', sortable: true},
+                    {header: "登录密码", width: 80, dataIndex: 'loginPassword', sortable: true}
+                ]
+            })
+
+            /* Ext.create('Ext.data.Store', {
+             storeId:'simpsonsStore',
+             fields:['name', 'email', 'phone'],
+             data:{'items':[
+             { 'name': 'Lisa',  "email":"lisa@simpsons.com",  "phone":"555-111-1224"  },
+             { 'name': 'Bart',  "email":"bart@simpsons.com",  "phone":"555-222-1234" },
+             { 'name': 'Homer', "email":"home@simpsons.com",  "phone":"555-222-1244"  },
+             { 'name': 'Marge', "email":"marge@simpsons.com", "phone":"555-222-1254"  }
+             ]},
+             proxy: {
+             type: 'memory',
+             reader: {
+             type: 'json',
+             root: 'items'
+             }
+             }
+             });
+
+             Ext.create('Ext.grid.Panel', {
+             title: 'Simpsons',
+             store: Ext.data.StoreManager.lookup('simpsonsStore'),
+             columns: [
+             { text: 'Name',  dataIndex: 'name' },
+             { text: 'Email', dataIndex: 'email', flex: 1 },
+             { text: 'Phone', dataIndex: 'phone' }
+             ],
+             height: 200,
+             width: 400,
+             renderTo: Ext.getBody()
+             });*/
+        });
+    </script>
+</head>
+<body>
+
+</body>
+</html>

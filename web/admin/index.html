@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<link rel="stylesheet" type="text/css" href="/extjs/resources/css/ext-all.css"/>
+<script type="text/javascript" src="/extjs/ext-all.js"/>
+<script type="text/javascript" src="/extjs/bootstrap.js"></script>
+<script type="text/javascript" src="/extjs/locale/ext-lang-zh_CN.js"></script>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<script type="text/javascript">
+Ext.onReady(function () {
+    var treeStore = Ext.create('Ext.data.TreeStore', {
+        root: {
+            expanded: true,
+            children: [
+                { text: "融资", expanded: false, leaf: false,
+                    children: [
+                        { text: "list", leaf: true, id: "list", url: ''},
+                        { text: "add", leaf: true, id: 'add'}
+                    ]
+                },
+
+                { text: "还款", expanded: true,
+                    children: [
+                        { text: "book report", leaf: true },
+                        { text: "algebra", leaf: true}
+                    ]
+                },
+
+                { text: "buy lottery tickets", leaf: true }
+            ]
+        }
+
+    });
+
+    var projectForm = Ext.create('Ext.form.Panel', {
+        title: '修改项目',
+        bodyPadding: 5,
+        // The form will submit an AJAX request to this URL when submitted
+        fieldDefaults: {         //统一设置表单字段默认属性
+            labelSeparator: ':', //分隔符
+            labelWidth: 80,
+            msgTarget: 'side',
+            width: 300
+        },
+        // Fields will be arranged vertically, stretched to full width
+        layout: 'anchor',
+        defaults: {
+            anchor: '100%'
+        },
+        // The fields
+        defaultType: 'textfield',
+        items: [
+            {
+                fieldLabel: '企业名称',
+                name: 'company',
+                allowBlank: false
+            },
+            {
+                fieldLabel: '联系人',
+                name: 'contact',
+                allowBlank: false
+            },
+            {
+                fieldLabel: '手机号码',
+                name: 'phone',
+                allowBlank: false
+            },
+            {
+                fieldLabel: '意向融资金额',
+                name: 'amount',
+                allowBlank: false
+            },
+            {
+                fieldLabel: '所在地区',
+                xtype: 'combo',
+                queryMode: 'local',
+                displayField: 'name',
+                name: 'area',
+                valueField: 'abbr',
+                store: Ext.create('Ext.data.Store', {
+                    fields: ['abbr', 'name'],
+                    data: [
+                        {"abbr": "yunnan", "name": "云南"},
+                        {"abbr": "beijing", "name": "北京"}
+                    ]
+                })
+            },
+            {
+                fieldLabel: '预期融资期限',
+                xtype: 'combo',
+                queryMode: 'local',
+                displayField: 'name',
+                valueField: 'abbr',
+                name: 'period',
+                store: Ext.create('Ext.data.Store', {
+                    fields: ['abbr', 'name'],
+                    data: [
+                        {"abbr": "302", "name": "15 天以内"},
+                        {"abbr": "303", "name": "15 - 30 天"},
+                        {"abbr": "304", "name": "1 - 3 个月"},
+                        {"abbr": "305", "name": "3 - 6 个月"},
+                        {"abbr": "306", "name": "6 个月 - 1 年"},
+                        {"abbr": "307", "name": "1 年以上"},
+                        {"abbr": "308", "name": "其他期限"}
+                    ]
+                })
+            },
+            {
+                fieldLabel: '所属行业',
+                xtype: 'combo',
+                queryMode: 'local',
+                displayField: 'name',
+                valueField: 'abbr',
+                name: 'industry',
+                store: Ext.create('Ext.data.Store', {
+                    fields: ['abbr', 'name'],
+                    data: [
+                        {"abbr": "401", "name": "农林牧渔业"},
+                        {"abbr": "407", "name": "采矿业"},
+                        {"abbr": "415", "name": "制造业"},
+                        {"abbr": "447", "name": "电力、热力、燃气及水生产和供应业"},
+                        {"abbr": "451", "name": "建筑业"},
+                        {"abbr": "456", "name": "批发和零售业"},
+                        {"abbr": "459", "name": "交通运输、仓储和邮政业"},
+                        {"abbr": "468", "name": "住宿和餐饮业"},
+                        {"abbr": "471", "name": "信息传输、软件和信息技术服务业"},
+                        {"abbr": "475", "name": "金融业"},
+                        {"abbr": "480", "name": "房地产业"},
+                        {"abbr": "481", "name": "租赁和商务服务业"},
+                        {"abbr": "484", "name": "科学研究和技术服务业"},
+                        {"abbr": "488", "name": "水利、环境和公共设施管理业"},
+                        {"abbr": "492", "name": "居民服务、修理和其他服务业"},
+                        {"abbr": "496", "name": "教育"},
+                        {"abbr": "497", "name": "卫生和社会工作"},
+                        {"abbr": "500", "name": "文化、体育和娱乐业"},
+                        {"abbr": "506", "name": "其他"}
+                    ]
+                })
+            },
+            {
+                fieldLabel: '备注说明',
+                xtype: 'textarea',
+                name: 'remark',
+                allowBlank: false
+            },
+            {
+                xtype: 'hidden',
+                name: 'id'
+            }
+        ],
+        // Reset and Submit buttons
+        buttons: [
+            {
+                text: 'Reset',
+                handler: function () {
+                    this.up('form').getForm().reset();
+                }
+            },
+            {
+                text: '关闭',
+                handler: function () {
+                    projectModifyWin.hide();
+                }
+            },
+            {
+                text: 'Submit',
+                formBind: true, //only enabled once the form is valid
+                disabled: true,
+                handler: function () {
+                    var form = this.up('form').getForm();
+                    var userDetail = Ext.JSON.encode(form.getValues(false));
+                    if (form.isValid()) {
+                        Ext.Ajax.request({
+                            method: 'POST',
+                            url: '/admin/Project_modifyUserDetail',
+                            params: { userDetailString: userDetail },//想要传递到后台的参数
+                            waitMsg: '正在提交数据，请稍后。',
+                            waitTitle: '提示',
+                            success: function (response, options) {
+                                projectModifyWin.hide();
+                                result = Ext.JSON.decode(response.responseText);//获取从后台传递回来的字符串
+                                if (result.success == true) {//提交成功，成功访问后台
+                                    projectStore.reload();
+                                    Ext.Msg.alert("提示", "提交成功！");
+                                }
+                                else
+                                    Ext.Msg.alert('错误', "提交失败！");
+                            }
+                        });
+                    }
+                }
+            }
+        ]
+    });
+
+    var projectModifyWin = new Ext.window.Window({
+        layout: 'fit',
+        autoWidth: true,
+        closeAction: 'hide',
+        autoHeight: true,
+        resizable: true,
+        shadow: true,
+        modal: true,
+        closable: true,
+        items: projectForm
+    });
+
+    var loanForm = Ext.create('Ext.form.Panel', {
+        bodyPadding: 5,
+        // The form will submit an AJAX request to this URL when submitted
+        fieldDefaults: {         //统一设置表单字段默认属性
+            labelSeparator: ':', //分隔符
+            labelWidth: 80,
+            msgTarget: 'side',
+            width: 300
+        },
+        // Fields will be arranged vertically, stretched to full width
+        layout: 'anchor',
+        defaults: {
+            anchor: '100%'
+        },
+        // The fields
+        defaultType: 'textfield',
+        items: [
+            {
+                fieldLabel: '融资名称',
+                name: 'name',
+                allowBlank: false
+            },
+            {
+                fieldLabel: '年化利率',
+                name: 'rate',
+                allowBlank: false
+            },
+            {
+                fieldLabel: '可投资金额',
+                name: 'remainMoney',
+                allowBlank: false
+            },
+            {
+                fieldLabel: '项目启动日期',
+                xtype: 'datefield',
+                name: 'startTime',
+                maxValue: '12/31/2020',
+                minValue: '01/01/2013',
+                format: 'm d Y',
+                //altFormats: 'm,d,Y|m.d.Y',
+                disabledDays: [0, 6],
+                disabledDaysText: '禁止选择改日期',
+                width: 220
+            },
+            {
+                fieldLabel: '项目结束日期',
+                xtype: 'datefield',
+                name: 'endTime',
+                maxValue: '12/31/2020',
+                minValue: '01/01/2013',
+                format: 'm d Y',
+                //altFormats: 'm,d,Y|m.d.Y',
+                width: 220
+            },
+            {
+                xtype: 'radiogroup',
+                fieldLabel: '是否完成',
+                columns: 2,
+                layout: 'auto',
+                items: [
+                    {boxLabel: '是', name: 'finish', inputValue: true},
+                    {boxLabel: '否', name: 'finish', inputValue: false, checked: true}
+                ]
+            },
+            {
+                xtype: 'hidden',
+                name: 'userdetailid'
+            },
+            {
+                xtype: 'hidden',
+                name: 'id'
+            },
+            {
+                xtype: 'hidden',
+                name: 'remainTime'
+            }
+        ],
+        // Reset and Submit buttons
+        buttons: [
+            {
+                text: 'Reset',
+                handler: function () {
+                    this.up('form').getForm().reset();
+                }
+            },
+            {
+                text: '关闭',
+                handler: function () {
+                    var form = this.up('form').getForm();
+                    var loan = form.findField('startTime').getValue();
+                    loan = Ext.Date.format(loan, 'Y-m-d');
+                    //loan = Date.parse(loan);
+                    //alert(loan);
+                    //loanWin.hide();
+                }
+            },
+            {
+                text: 'Submit',
+                formBind: true, //only enabled once the form is valid
+                disabled: true,
+                handler: function () {
+                    var form = this.up('form').getForm();
+                    var loan = Ext.JSON.encode(form.getValues(false));//替换"remainTime":""，为"remainTime":"days"
+                    if (form.isValid()) {
+                        if (form.isAdd) {
+                            Ext.Ajax.request({
+                                method: 'POST',
+                                url: '/admin/Project_addLoan',
+                                params: {loanString: loan},//想要传递到后台的参数
+                                waitMsg: '正在提交数据，请稍后。',
+                                waitTitle: '提示',
+                                success: function (response, options) {
+                                    loanWin.hide();
+                                    result = Ext.JSON.decode(response.responseText);//获取从后台传递回来的字符串
+                                    if (result.success == true) {//提交成功，成功访问后台
+                                        loanStore.reload();
+                                        //alert(form.findField("endTime").getValue());
+                                        //alert("相差天数: " + loan);
+                                        Ext.Msg.alert("提示", "提交成功！");
+                                    }
+                                    else
+                                        Ext.Msg.alert('错误', "提交失败！");
+                                }
+                            });
+                        } else if (form.isAdd == false) {
+                            Ext.Ajax.request({
+                                method: 'POST',
+                                url: '/admin/Project_modifyLoan',
+                                params: {loanString: loan},//想要传递到后台的参数
+                                waitMsg: '正在提交数据，请稍后。',
+                                waitTitle: '提示',
+                                success: function (response, options) {
+                                    loanWin.hide();
+                                    result = Ext.JSON.decode(response.responseText);//获取从后台传递回来的字符串
+                                    if (result.success == true) {//提交成功，成功访问后台
+                                        loanStore.reload();
+                                        Ext.Msg.alert("提示", "提交成功！");
+                                    }
+                                    else
+                                        Ext.Msg.alert('错误', "提交失败！");
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        ]
+    });
+
+    var loanWin = new Ext.window.Window({
+        layout: 'fit',
+        autoWidth: true,
+        closeAction: 'hide',
+        autoHeight: true,
+        resizable: true,
+        shadow: true,
+        modal: true,
+        closable: true,
+        items: loanForm
+    });
+
+    function formatPeriod(value) {
+        return value == 302 ? '15 天以内' : value == 303 ? '15 - 30 天' : value == 304 ? '1 - 3 个月' : value == 305 ? '3 - 6 个月' : value == 306 ? '6 个月 - 1 年' : value == 307 ? '1 年以上' : '其他期限';
+    }
+
+    function formatIndustry(value) {
+        return value == 401 ? '农林牧渔业' : value == 407 ? '采矿业' : value == 415 ? '制造业' : value == 447 ? '电力、热力、燃气及水生产和供应业' : value == 451 ? '建筑业' : value == 456 ? '批发和零售业' : value == 459 ? '交通运输、仓储和邮政业' : value == 468 ? '住宿和餐饮业' : value == 471 ? '信息传输、软件和信息技术服务业' : value == 475 ? '金融业' : value == 480 ? '房地产业' : value == 481 ? '租赁和商务服务业' : value == 484 ? '科学研究和技术服务业' : value == 488 ? '水利、环境和公共设施管理业' : value == 492 ? '居民服务、修理和其他服务业' : value == 496 ? '教育' : value == 497 ? '卫生和社会工作' : value == 500 ? '文化、体育和娱乐业' : '其他';
+    }
+
+    function deleteProject(id) {
+        var msgTip = Ext.MessageBox.show({
+            title: '提示',
+            width: 250,
+            msg: '正在删除项目请稍后...'
+        });
+        Ext.Ajax.request({
+            url: '/admin/Project_deleteUserDetail',
+            params: {id: id},
+            method: 'POST',
+            success: function (response, options) {
+                msgTip.hide();
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success == true) {
+                    var index = projectStore.find('id', id);
+                    if (index != -1) {
+                        var rec = projectStore.getAt(index);
+                        projectStore.remove(rec);
+                    }
+                    Ext.Msg.alert('提示', '删除项目成功。');
+                } else {
+                    Ext.Msg.alert('提示', '删除项目失败');
+                }
+
+            },
+            failure: function (response, opts) {
+                console.log('server-side failure with status code ' + response.status);
+            }
+        })
+    }
+
+    function deleteLoan(id) {
+        var msgTip = Ext.MessageBox.show({
+            title: '提示',
+            width: 250,
+            msg: '正在删除项目请稍后...'
+        });
+        Ext.Ajax.request({
+            url: '/admin/Project_deleteLoan',
+            params: {id: id},
+            method: 'POST',
+            success: function (response, options) {
+                msgTip.hide();
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success == true) {
+                    var index = loanStore.find('id', id);
+                    if (index != -1) {
+                        var rec = loanStore.getAt(index);
+                        loanStore.remove(rec);
+                    }
+                    Ext.Msg.alert('提示', '删除发布成功');
+                } else {
+                    Ext.Msg.alert('提示', '删除发布失败');
+                }
+
+            },
+            failure: function (response, opts) {
+                console.log('server-side failure with status code ' + response.status);
+            }
+        })
+    }
+
+    Ext.define('loan', {
+        extend: 'Ext.data.Model',
+        fields: [
+            {name: 'id', type: 'int'},
+            {name: 'name', type: 'string'},
+            {name: 'rate', type: 'int'},
+            {name: 'remainMoney', type: 'int'},
+            {name: 'startTime', type: 'date'},
+            {name: 'endTime', type: 'date'},
+            {name: 'remainDay', type: 'int'},
+            {name: 'finish', type: 'boolean'},
+            {name: 'userDetail.id', type: 'int'}
+        ]
+    });
+
+    var loanStore = Ext.create('Ext.data.Store', {
+        storeId: 'loanStore',
+        model: loan,
+        autoLoad: true,
+        proxy: {
+            type: 'ajax',
+            url: '/admin/Project_listLoan',
+            reader: {
+                type: 'json',
+                root: 'loanList'
+            }
+        }
+    });
+
+    var loanGridPanel = Ext.create('Ext.grid.Panel', {
+        title: '以发布的项目',
+        store: loanStore.load(),
+        autoWidth: true,
+        autoHeight: true,
+        autoShow: true,
+        columns: [
+            Ext.create('Ext.grid.RowNumberer', {text: '行号', width: 35}),
+            { text: 'id', dataIndex: 'id'},
+            { text: '名称', dataIndex: 'name'},
+            { text: '年利率', dataIndex: 'rate'},
+            { text: '可投资金额', dataIndex: 'remainMoney' },
+            { text: '开始日期', dataIndex: 'startTime', renderer: Ext.util.Format.dateRenderer('m/d/Y')},
+            { text: '剩余时间', dataIndex: 'remainDay'},
+            { text: '是否完成', dataIndex: 'finish'},
+            { text: 'userDetail.id', dataIndex: 'userDetail.id'},
+            {
+                header: '操作', width: 70,
+                xtype: 'actioncolumn',
+                items: [
+                    {
+                        icon: '/images/edit.png',
+                        handler: function (grid, rowIndex, colIndex) {
+                            var rec = grid.getStore().getAt(rowIndex);
+                            //loanForm.form.setTitle('修改发布信息');  不行
+                            loanForm.form.reset();
+                            loanForm.form.isAdd = false;
+                            loanForm.form.setValues({id: rec.get("id"), name: rec.get("name"), rate: rec.get("rate"), remainMoney: rec.get("remainMoney"), startTime: rec.get("startTime"), finish: rec.get("finish"), userdetailid: rec.get("userDetail.id")});
+                            loanWin.setTitle('修改的发布项目');
+                            //alert("修改"+rec.get("id"));
+                            loanWin.show();
+                        }
+                    },
+                    {
+                        icon: '/images/add.png',
+                        handler: function (grid, rowIndex, colIndex) {
+                            var rec = grid.getStore().getAt(rowIndex);
+                            loanForm.form.reset();
+                            loanForm.form.setValues({userdetailid: rec.get("id")});
+                            loanWin.setTitle('修改的发布项目');
+                            loanWin.show();
+                        }
+                    },
+                    {
+                        icon: '/images/del.png',
+                        handler: function (grid, rowIndex, colIndex) {
+                            var rec = grid.getStore().getAt(rowIndex);
+                            Ext.MessageBox.confirm("提示", '你确定要删除所选项目吗？', function (btnId) {
+                                if (btnId == 'yes') {
+                                    deleteLoan(rec.get("id"));
+                                }
+                            });
+                        }
+                    }
+                ]
+            }
+        ]
+    });
+
+    Ext.define('userDetail', {
+        extend: 'Ext.data.Model',
+        fields: [
+            {name: 'id', type: 'int'},
+            {name: 'company', type: 'string'},
+            {name: 'contact', type: 'string'},
+            {name: 'area', type: 'string'},
+            {name: 'phone', type: 'int'},
+            {name: 'period', type: 'string'},
+            {name: 'industry', type: 'string'},
+            {name: 'remark', type: 'string'},
+            {name: 'amount', type: 'int'},
+            {name: 'user.id', type: 'int'},
+            {name: 'time', type: 'string'}
+        ]
+    });
+
+    var projectStore = Ext.create('Ext.data.Store', {
+        storeId: 'projectListStore',
+        model: userDetail,
+        autoLoad: true,
+        proxy: {
+            type: 'ajax',
+            url: '/admin/Project_listUsersDetail',
+            reader: {
+                type: 'json',
+                root: 'userDetailList'
+            }
+        }
+    });
+
+    var projectGridPanel = Ext.create('Ext.grid.Panel', {
+        title: '用户详情',
+        store: projectStore.load(),
+        autoWidth: true,
+        autoHeight: true,
+        autoShow: true,
+        tbar: [
+            {
+                text: '删除书籍',
+                id: 'remove'
+                /*handler:showDeleteProject*/
+            }
+        ],
+        columns: [
+            Ext.create('Ext.grid.RowNumberer', {text: '行号', width: 35}),
+            { text: 'id', dataIndex: 'id', width: 35},
+            { text: '公司', dataIndex: 'company'},
+            { text: '联系人', dataIndex: 'contact', width: 50 },
+            { text: '地址', dataIndex: 'area' },
+            { text: '手机', dataIndex: 'phone' },
+            { text: '周期', dataIndex: 'period', width: 70, renderer: formatPeriod},
+            { text: '产业', dataIndex: 'industry', renderer: formatIndustry},
+            { text: '备注', dataIndex: 'remark' },
+            { text: '数额', dataIndex: 'amount', xtype: 'templatecolumn', tpl: '{amount}万元' },
+            { text: '用户', dataIndex: 'user.id', width: 35 },
+            { text: '申请时间', dataIndex: 'time', width: 130, renderer: Ext.util.Format.dateRenderer('m/d/Y g:i a ')},
+            {
+                header: '操作', width: 70,
+                xtype: 'actioncolumn',
+                items: [
+                    {
+                        icon: '/images/edit.png',
+                        handler: function (grid, rowIndex, colIndex) {
+                            var rec = grid.getStore().getAt(rowIndex);
+                            projectForm.form.reset();
+                            projectForm.form.setValues({id: rec.get("id"), company: rec.get("company"), contact: rec.get("contact"), phone: rec.get("phone"), amount: rec.get("amount"), area: rec.get("area"), period: rec.get("period"), industry: rec.get("industry"), remark: rec.get("remark")});
+                            projectModifyWin.setTitle("修改项目信息");
+                            projectModifyWin.show();
+                            //alert("修改"+rec.get("id"));
+                        }
+                    },
+                    {
+                        icon: '/images/add.png',
+                        handler: function (grid, rowIndex, colIndex) {
+                            var rec = grid.getStore().getAt(rowIndex);
+                            loanForm.form.reset();
+                            loanForm.form.isAdd = true;
+                            loanForm.form.setValues({userdetailid: rec.get("id")});
+                            loanWin.setTitle('发布项目');
+                            loanWin.show();
+                        }
+                    },
+                    {
+                        icon: '/images/del.png',
+                        handler: function (grid, rowIndex, colIndex) {
+                            var rec = grid.getStore().getAt(rowIndex);
+                            Ext.MessageBox.confirm("提示", '你确定要删除所选项目吗？', function (btnId) {
+                                if (btnId == 'yes') {
+                                    deleteProject(rec.get("id"));
+                                }
+                            });
+                        }
+                    }
+                ]
+            }
+        ]
+    });
+
+    var treePanel = Ext.create('Ext.tree.Panel', {
+        width: 150,
+        store: treeStore,
+        split: true,
+        rootVisible: false,
+        listeners: {
+            'itemclick': function (view, record, item, index, e, eOpts) {
+                /*alert(record.raw.leaf);*/
+                if (record.raw.leaf) {
+                    if (record.raw.id == 'list') {
+                        var tabpanel = Ext.getCmp('tabpanel');
+                        var n;
+                        n = tabpanel.getComponent(record.raw.id);
+                        if (n) {
+                            tabpanel.setActiveTab(n);
+                            return;
+                        }
+                        n = tabpanel.add({
+                            id: record.raw.id,
+                            title: record.raw.id,
+                            closable: 'true',
+                            items: [
+                                projectGridPanel
+                            ]
+                        });
+                        tabpanel.setActiveTab(n);
+                    }
+                    else if (record.raw.id == 'add') {
+                        var tabpanel = Ext.getCmp('tabpanel');
+                        var n;
+                        n = tabpanel.getComponent(record.raw.id);
+                        if (n) {
+                            tabpanel.setActiveTab(n);
+                            return;
+                        }
+                        loanStore.reload();
+                        n = tabpanel.add({
+                            id: record.raw.id,
+                            title: record.raw.id,
+                            closable: 'true',
+                            items: [
+                                loanGridPanel
+                            ]
+                        });
+                        tabpanel.setActiveTab(n);
+                    }
+                    else if (record.raw.id == 'workList')
+                        openControlPanel('workList', 'WorkList');
+                    else if (record.raw.id == 'workIn')
+                        openControlPanel('workIn', 'WorkIn');
+                }
+            }
+        }
+    });
+
+    Ext.create('Ext.container.Viewport', {
+        layout: 'border',
+        items: [
+            {
+                region: 'north',
+                html: '<h1 class="x-panel-header" style="text-align:center">积木盒子后台管理系统</h1>',
+                border: false,
+                margins: '0 0 5 0'
+            },
+            {
+                region: 'west',
+                collapsible: true,
+                title: 'Navigation',
+                width: 150,
+                items: [
+                    Ext.create('Ext.panel.Panel', {
+                        height: 450,
+                        defaults: {
+                            // applied to each contained panel
+                            bodyStyle: 'padding:0px'
+                        },
+                        layout: {
+                            // layout-specific configs go here
+                            type: 'accordion',
+                            titleCollapse: true,
+                            animate: true,
+                            activeOnTop: false
+                        },
+                        items: [
+                            {
+                                title: '项目管理',
+                                items: [
+                                    treePanel
+                                ]
+                            },
+                            {
+                                title: '权限管理',
+                                html: 'Panel content!',
+                                items: [
+                                    Ext.create('Ext.Button', {
+                                        text: 'Click me',
+                                        handler: function () {
+                                            alert('You clicked the button!');
+                                        }
+                                    })
+                                ]
+                            },
+                            {
+                                title: '资源管理',
+                                html: 'Panel content!'
+                            }
+                        ]
+                    })
+                ]
+                // could use a TreePanel or AccordionLayout for navigational items
+            },
+            {
+                region: 'center',
+                xtype: 'tabpanel',
+                id: 'tabpanel',
+                // TabPanel itself has no title
+                activeTab: 0,      // First tab active by default
+                enableTabScroll: true,
+                deferredRender: false,
+                autoDestroy: false,
+                items: {
+                    title: 'Default Tab',
+                    //html: 'The first tab\'s content. Others may be added dynamically',
+                    autoLoad: '/front/User_listUsersDetail'
+                }
+            }
+        ]
+    });
+});
+</script>
+</head>
+<body>
+<p id="p"></p>
+</body>
+</html>

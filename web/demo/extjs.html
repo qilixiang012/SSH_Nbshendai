@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="/extjs/resources/css/ext-all.css"/>
+    <script type="text/javascript" src="/extjs/ext-all.js"/>
+    <script type="text/javascript" src="/extjs/bootstrap.js"></script>
+    <script type="text/javascript" src="/extjs/locale/ext-lang-zh_CN.js"></script>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript">
+        function test() {
+            alert("test");
+        }
+        Ext.onReady(function () {
+            //Ext.get("hello").on("click",test,this,{delay:2000});
+            Ext.MessageBox.alert("hello", "asdf士大夫");
+            var win = new Ext.Window({
+                title: "hello", width: 300, height: 200, html: '<h1>helloworld</h1>'
+            });
+            var panel = new Ext.Panel({
+                title: 'hello',
+                width: 200,
+                height: 200,
+                html: 'helloworld',
+                allowDomMove: false,
+                items: [                 //items用于创建子组件，它的参数是一个数组，数组里是对象的集合（可以new，也可以{}指代），通过{}可以实现延迟加载，只有在初始化父元素后才会加载，而new则一开始就加载
+                    new Ext.Panel({
+                        title: 'hello',
+                        width: 100,
+                        height: 100,
+                        html: 'helloworld',
+                        items: [
+                            new Ext.Button({
+                                width: 50,
+                                height: 50,
+                                listeners: {
+                                    click: {
+                                        element: 'el', //bind to the underlying el property on the panel
+                                        fn: function () {
+                                            alert("hello");
+                                            return false;
+                                        }
+                                    },
+                                    dblclick: {
+                                        element: 'body', //bind to the underlying body property on the panel
+                                        fn: function () {
+                                            console.log('dblclick body');
+                                        }
+                                    }
+                                }
+                            })
+                        ]
+
+                    }), {
+                        title: 'asdfkl',
+                        height: 10
+                    }
+                ]
+
+            });
+            panel.render("hello")      //可以使用renderTo属性替代
+            win.show();
+
+            new Ext.Panel({
+                renderTo: "p",
+                title: "容器组件",
+                width: 500,
+                height: 200,
+                layout: "accordion",
+                layoutConfig: {
+                    animate: true
+                },
+                items: [
+                    {title: "子元素1", html: '这是子元素1的内容', id: "ziyuansu1"},
+                    {title: "子元素2", html: '这是子元素2的内容'},
+                    {title: "子元素3", html: "这个是子元素3的内容"}
+                ]
+            });
+
+            var store = Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: [
+                        { text: "detention", href: "http://www.baidu.com", hrefTarget: "ziyuansu1", leaf: true },
+                        { text: "homework", expanded: true, children: [
+                            { text: "book report", leaf: true },
+                            { text: "algebra", leaf: true}
+                        ] },
+                        { text: "buy lottery tickets", leaf: true }
+                    ]
+                }
+            });
+
+            Ext.create('Ext.tree.Panel', {
+                title: 'Simple Tree',
+                width: 200,
+                height: 150,
+                store: store,
+                rootVisible: false,
+                renderTo: Ext.getBody()
+            });
+        });
+
+
+        var projectGridPanel = Ext.create('Ext.grid.Panel', {
+            title: '用户详情',
+            autoWidth: true,
+            autoHeight: true,
+            frame: true,
+            tbar: [
+                {
+                    text: '删除书籍',
+                    id: 'remove'
+                    /*handler:showDeleteProject*/
+                }
+            ],
+            store: {
+                fields: ['id', 'company', 'contact', 'area', 'phone', 'period', 'industry', 'remark', 'amount', 'user.username'],
+                proxy: {
+                    type: 'ajax',
+                    url: '/admin/Project_listUsersDetail',
+                    reader: {
+                        type: 'json',
+                        root: 'userDetailList'
+                    }
+                },
+                autoLoad: true
+            },
+            columns: [
+                new Ext.grid.RowNumberer(),
+                {header: "id", width: 80, dataIndex: 'id', sortable: true},
+                {header: "公司", width: 80, dataIndex: 'company', sortable: true},
+                {header: "联系人", width: 80, dataIndex: 'contact', sortable: true},
+                {header: "地址", width: 80, dataIndex: 'area', sortable: true},
+                {header: "手机", width: 80, dataIndex: 'phone', sortable: true},
+                {header: "周期", width: 80, dataIndex: 'period', sortable: true},
+                {header: "产业", width: 80, dataIndex: 'industry', sortable: true},
+                {header: "备注", width: 80, dataIndex: 'remark', sortable: true},
+                {header: "数额", width: 80, dataIndex: 'amount', sortable: true},
+                {header: "用户", width: 80, dataIndex: 'user.username', sortable: true},
+            ]
+        });
+
+        switch (action.failureType) {
+            case Ext.form.action.Action.CLIENT_INVALID:
+                Ext.Msg.alert('Failure', 'Form fields may not be submitted with invalid values');
+                break;
+            case Ext.form.action.Action.CONNECT_FAILURE:
+                Ext.Msg.alert('Failure', 'Ajax communication failed');
+                break;
+            case Ext.form.action.Action.SERVER_INVALID:
+                Ext.Msg.alert('Failure', action.result.msg);
+        }
+
+        var userDetail = form.getValues(false); //获取表单字段的值
+        alert(Ext.JSON.encode(id));   //将json类型转化为字符串
+
+        form.submit({
+            url: '/admin/Project_modifyUserDetail',
+            method: 'POST',
+            params: {
+                userDetailString: userDetail
+            },
+            success: function (form, action) {
+                Ext.Msg.alert('Success', action.result.success);
+            },
+            failure: function (form, action) {
+                Ext.Msg.alert('Failed', userDetail);
+            }
+        });
+
+
+        var form = this.up('form').getForm();
+        var startTime = form.findField("startTime").getValue();
+        var endTime = form.findField("endTime").getValue();
+        var d1 = new Date(startTime);
+        var d2 = new Date(endTime);
+        var time = d2.getTime() - d1.getTime();
+        var days = parseInt(time / (1000 * 60 * 60 * 24));
+        var loan = Ext.JSON.encode(form.getValues(false));//替换"remainTime":""，为"remainTime":"days"
+        loan = loan.replace(/"remainTime":""/, '"remainTime":"' + days + '"');
+    </script>
+</head>
+<body>
+<p id="p">p</p>
+
+<h1>h1</h1>
+
+<h2>h2</h2>
+
+<div id="hello"></div>
+<br>
+<br>
+
+<div id="tree"></div>
+</body>
+</html>

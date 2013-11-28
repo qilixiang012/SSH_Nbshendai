@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+    <constant name="struts.i18n.encoding" value="utf8"></constant>
+    <constant name="struts.enable.DynamicMethodInvocation" value="true" />
+    <constant name="struts.devMode" value="true" />
+
+
+    <package name="front" namespace="/" extends="struts-default">
+        <default-action-ref name="index"></default-action-ref>     <!--BUG-->
+        <action name="index">
+            <result>/index.html</result>
+        </action>
+        <action name="*_*" class="{1}Action" method="{2}">
+            <result type="dispatcher">/front/{1}_{2}.jsp</result> <!--服务器跳转-->
+            <result name="error" type="redirect">/user/login.jsp</result>
+            <result name="login" type="redirectAction">${returnUrl}</result>
+        </action>
+    </package>
+
+
+    <package name="admin" namespace="/admin" extends="json-default">
+        <default-action-ref name="index"></default-action-ref>
+        <action name="index">
+            <result>/admin/index.html</result>
+        </action>
+
+        <action name="*_*" class="com.yangunilay.action.admin.{1}Action" method="{2}">
+            <result type="json">
+                <param name="root">dataMap</param>
+            </result>
+        </action>
+    </package>
+
+
+
+
+    <!--<include file="example.xml"/>-->
+</struts>
