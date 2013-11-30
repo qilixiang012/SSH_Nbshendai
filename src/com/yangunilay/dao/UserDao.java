@@ -21,7 +21,7 @@ public interface UserDao {
     public User getUser(String username);
     public void saveDetail(UserDetail userDetail);
     public Loan getLoan(int id);
-    public void addMoney(String username,int money);
+    public int addMoney(String username,int money);
     public void updateLoan(int loanid);
     public void updateUser(String username);
 }

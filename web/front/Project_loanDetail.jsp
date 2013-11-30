@@ -19,6 +19,7 @@
         <li id="Project"><a href="Project_listLoans">我要投资</a></li>
         <li id="Loan"><a href="Project_loan">我要融资</a></li>
         <li id="Account"><a href="User_Detail">我的账户</a></li>
+        <li id="signout"><a href="User_signout">退出登录</a></li>
     </ul>
     <ul>
         <li></li>
@@ -89,6 +90,7 @@
                 <input type="hidden" name="id" value="<s:property value="id"/>">
                 <button type="submit">投标</button>
             </form>
+
             <div>投标金额应为 100.00 的整数倍</div>
             <div>可用余额：<%=session.getAttribute("availableMoney")%><a
                     href="/user/recharge.jsp?id=<s:property value="id"/>">[充值]</a></div>

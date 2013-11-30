@@ -43,6 +43,7 @@ public class UserAction extends ActionSupport implements SessionAware{
     private Map<String,Object> session;
     private int money;
     private int id;
+    private int availableMoney;
 
     public int getPage() {
         return page;
@@ -58,6 +59,14 @@ public class UserAction extends ActionSupport implements SessionAware{
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getAvailableMoney() {
+        return availableMoney;
+    }
+
+    public void setAvailableMoney(int availableMoney) {
+        this.availableMoney = availableMoney;
     }
 
     public MemberService getMemberService() {
@@ -98,7 +107,11 @@ public class UserAction extends ActionSupport implements SessionAware{
     }
 
     public void setReturnUrl(String returnUrl) {
-        this.returnUrl = returnUrl;
+        if(returnUrl.equals("null")){
+            this.returnUrl = "user/login.jsp";
+        }else {
+            this.returnUrl = returnUrl;
+        }
     }
 
     public List<UserDetail> getUserDetailList() {
@@ -179,7 +192,7 @@ public class UserAction extends ActionSupport implements SessionAware{
             session.put("login",Boolean.TRUE);
             session.put("username",userLoginInfo.getUsername());
             session.put("availableMoney",user.getMoney());
-            return LOGIN;
+            return "redirectAction";
         }
         return ERROR;
     }
@@ -187,7 +200,7 @@ public class UserAction extends ActionSupport implements SessionAware{
     public String loan(){
         if(session.get("login")==Boolean.FALSE){
             this.returnUrl = "/user/loan.jsp";
-            return LOGIN;
+            return "redirectAction";
         }
         String username = (String)session.get("username");
         User user = userService.getUser(username);
@@ -210,10 +223,12 @@ public class UserAction extends ActionSupport implements SessionAware{
     public String recharge(){
         System.out.println("--------------"+returnUrl+"-------------");
         if(session.get("login")==Boolean.TRUE ){
-            if(userService.recharge((String)session.get("username"),money)){
+            int rechargeSucc = userService.recharge((String)session.get("username"),money);
+            if(rechargeSucc>0){
                 returnUrl = "Project_loanDetail.action?id="+id;
                 session.put("availableMoney",(Integer)session.get("availableMoney")+money);
-                return LOGIN;
+                System.out.println("--------------"+availableMoney+"-------------");
+                return "redirectAction";
             }else {
                 return ERROR;
             }
@@ -225,8 +240,14 @@ public class UserAction extends ActionSupport implements SessionAware{
         System.out.println("--------------"+id+"-----"+money+"------------------");
         if(userService.investValid((String)session.get("username"),money)){
             userService.addInvest((String)session.get("username"),money,id);
+            session.put("availableMoney",(Integer)session.get("availableMoney")-money);
             return SUCCESS;
         }
         return ERROR;
+    }
+
+    public String signout(){
+        this.session.put("login",Boolean.FALSE);
+        return "login";
     }
 }

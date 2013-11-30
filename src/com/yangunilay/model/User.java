@@ -58,9 +58,8 @@ public class User {
         this.loginPassword = loginPassword;
     }
 
-    @OneToMany(targetEntity=Invest.class,cascade=CascadeType.ALL)
-    @Fetch(FetchMode.JOIN)
-    @JoinColumn(name = "userid",updatable=false)
+    @OneToMany(targetEntity=Invest.class,cascade={CascadeType.ALL},fetch = FetchType.EAGER)
+    @JoinColumn(name = "userid",updatable=true)
     public List<Invest> getInvestList() {
         return investList;
     }

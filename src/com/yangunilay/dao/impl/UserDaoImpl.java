@@ -81,10 +81,11 @@ public class UserDaoImpl implements UserDao{
     }
 
     @Override
-    public void addMoney(String username, int money) {
+    public int addMoney(String username, int money) {
         User user = getUser(username);
         user.setMoney(user.getMoney()+money);
         hibernateTemplate.update(user);
+        return user.getMoney();
     }
 
     @Override

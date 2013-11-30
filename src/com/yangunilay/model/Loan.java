@@ -53,9 +53,8 @@ public class Loan {
     public void setStartTimeDemo(String startTimeDemo) {
         this.startTimeDemo = startTimeDemo;
     }*/
-    @OneToMany(targetEntity=Invest.class,cascade=CascadeType.ALL)
-    @Fetch(FetchMode.JOIN)
-    @JoinColumn(name = "loanid",updatable=false)
+    @OneToMany(targetEntity=Invest.class,cascade={CascadeType.ALL},fetch = FetchType.EAGER)
+    @JoinColumn(name = "loanid",updatable=true)
     public List<Invest> getInvestList() {
         return investList;
     }

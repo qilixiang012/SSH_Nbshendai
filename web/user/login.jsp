@@ -75,6 +75,7 @@
         <li id="Project"><a href="Project_listLoans">我要投资</a></li>
         <li id="Loan"><a href="/user/User_loan">我要融资</a></li>
         <li id="Account"><a href="">我的账户</a></li>
+        <li id="signout"><a href="User_signout">退出登录</a></li>
     </ul>
     <ul>
         <li></li>

@@ -88,12 +88,11 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public boolean recharge(String username,int money) {
+    public int recharge(String username,int money) {
         if(rechargeValid(money)){
-            userDao.addMoney(username,money);
-            return true;
+            return userDao.addMoney(username,money);
         }
-        return false;
+        return -1;
     }
 
     @Transactional
