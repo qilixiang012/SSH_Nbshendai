@@ -8,6 +8,7 @@ import com.yangunilay.model.Loan;
 import com.yangunilay.model.User;
 import com.yangunilay.model.UserDetail;
 import com.yangunilay.service.MemberService;
+import com.yangunilay.service.ProjectService;
 import com.yangunilay.service.UserService;
 import com.yangunilay.service.impl.UserServiceImpl;
 import org.apache.struts2.interceptor.SessionAware;
@@ -36,14 +37,19 @@ public class UserAction extends ActionSupport implements SessionAware{
     private List<UserDetail> userDetailList;
     private List<User> userList;
     private PageBean pageBean;
+    @Resource(name = "memberServiceImpl")
     private MemberService memberService;
     private int page;
     private String returnUrl;
+    @Resource(name = "userServiceImpl")
     private UserService userService;
     private Map<String,Object> session;
     private int money;
     private int id;
     private int availableMoney;
+    private Loan loan;
+    @Resource(name = "projectServiceImpl")
+    private ProjectService projectService;
 
     public int getPage() {
         return page;
@@ -51,6 +57,23 @@ public class UserAction extends ActionSupport implements SessionAware{
 
     public void setPage(int page) {
         this.page = page;
+    }
+
+    public Loan getLoan() {
+        return loan;
+    }
+
+    public void setLoan(Loan loan) {
+        this.loan = loan;
+    }
+
+    public ProjectService getProjectService() {
+        return projectService;
+    }
+
+
+    public void setProjectService(ProjectService projectService) {
+        this.projectService = projectService;
     }
 
     public int getId() {
@@ -73,7 +96,7 @@ public class UserAction extends ActionSupport implements SessionAware{
         return memberService;
     }
 
-    @Resource(name = "memberServiceImpl")
+
     public void setMemberService(MemberService memberService) {
         this.memberService = memberService;
     }
@@ -157,7 +180,7 @@ public class UserAction extends ActionSupport implements SessionAware{
         return userService;
     }
 
-    @Resource(name = "userServiceImpl")
+
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
@@ -182,32 +205,30 @@ public class UserAction extends ActionSupport implements SessionAware{
             return SUCCESS;
         }*/
         if(userLoginInfo.getUsername() == null || !userService.exist(userLoginInfo.getUsername())){
+            this.addFieldError("error","wrong!");
             return ERROR;
         }
         User user = userService.getUser(userLoginInfo.getUsername());
         if(user == null){
+            this.addFieldError("error","wrong!");
             return ERROR;
         }
         if(userLoginInfo.getLoginPassword().equals(user.getLoginPassword())){
             session.put("login",Boolean.TRUE);
             session.put("username",userLoginInfo.getUsername());
             session.put("availableMoney",user.getMoney());
-            return "redirectAction";
+            System.out.println("---------------"+returnUrl+"------------------");
+            if(returnUrl.endsWith(".jsp")){
+                return "redirect";
+            }else {
+                return "redirectAction";
+            }
         }
+        this.addFieldError("error","wrong!");
         return ERROR;
     }
 
-    public String loan(){
-        if(session.get("login")==Boolean.FALSE){
-            this.returnUrl = "/user/loan.jsp";
-            return "redirectAction";
-        }
-        String username = (String)session.get("username");
-        User user = userService.getUser(username);
-        userDetail.setUser(user);
-        userService.addDetail(userDetail);
-        return SUCCESS;
-    }
+
 
     public String listUsersDetail(){
         userDetailList = userService.listUsersDetail();
@@ -230,6 +251,7 @@ public class UserAction extends ActionSupport implements SessionAware{
                 System.out.println("--------------"+availableMoney+"-------------");
                 return "redirectAction";
             }else {
+                this.addFieldError("error","wrong!");
                 return ERROR;
             }
         }
@@ -243,7 +265,11 @@ public class UserAction extends ActionSupport implements SessionAware{
             session.put("availableMoney",(Integer)session.get("availableMoney")-money);
             return SUCCESS;
         }
-        return ERROR;
+        /*returnUrl = "Project_loanDetail?id="+id;*/
+        returnUrl = "/front/Project_loanDetail.jsp?id="+id;
+        loan = projectService.getLoan(id);
+        this.addFieldError("error","账户余额不足!");
+        return INPUT;
     }
 
     public String signout(){

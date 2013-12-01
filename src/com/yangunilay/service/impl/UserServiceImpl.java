@@ -7,6 +7,7 @@ import com.yangunilay.model.Loan;
 import com.yangunilay.model.User;
 import com.yangunilay.model.UserDetail;
 import com.yangunilay.service.UserService;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.util.List;
  */
 
 @Component(value = "userServiceImpl")
+@Scope("prototype")
 public class UserServiceImpl implements UserService {
     UserDao userDao;
 

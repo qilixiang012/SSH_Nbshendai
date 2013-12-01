@@ -1,11 +1,15 @@
 package com.yangunilay.action.admin;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.yangunilay.action.UserAction;
 import com.yangunilay.dto.PageBean;
 import com.yangunilay.model.Loan;
+import com.yangunilay.model.User;
 import com.yangunilay.model.UserDetail;
 import com.yangunilay.service.MemberService;
 import com.yangunilay.service.ProjectService;
+import com.yangunilay.service.UserService;
 import net.sf.json.JSONObject;
 import org.apache.struts2.interceptor.SessionAware;
 import org.springframework.context.annotation.Scope;
@@ -26,6 +30,7 @@ import java.util.*;
 public class ProjectAction extends ActionSupport{
     @Resource(name = "projectServiceImpl")
     private ProjectService projectService;
+    @Resource(name = "memberServiceImpl")
     private MemberService memberService;
     private String userDetailString;
     private String loanString;
@@ -37,10 +42,14 @@ public class ProjectAction extends ActionSupport{
     private int userdetailid;
     private PageBean pageBean;
     private int page;
-    private Map<String,Object> session;
+    @Resource(name = "userServiceImpl")
+    private UserService userService;
+    private String returnUrl;
+    private Map session;
 
     public ProjectAction(){
         dataMap = new HashMap<String, Object>();
+        session= ActionContext.getContext().getSession();
         //System.out.println("------------------'\n'"+"-------------"+"prototype"+"\n"+"------------------");
     }
 
@@ -50,6 +59,32 @@ public class ProjectAction extends ActionSupport{
 
     public void setLoan(Loan loan) {
         this.loan = loan;
+    }
+
+    public UserDetail getUserDetail() {
+        return userDetail;
+    }
+
+    public void setUserDetail(UserDetail userDetail) {
+        this.userDetail = userDetail;
+    }
+
+    public String getReturnUrl() {
+        return returnUrl;
+    }
+
+    public void setReturnUrl(String returnUrl) {
+        this.returnUrl = returnUrl;
+    }
+
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     public int getId() {
@@ -103,6 +138,22 @@ public class ProjectAction extends ActionSupport{
 
     public String getLoanString() {
         return loanString;
+    }
+
+    public String loan(){
+        System.out.println("----------"+session+"----------");
+        if(session.containsKey("login") && session.get("login").equals(Boolean.TRUE)){
+            String username = (String)session.get("username");
+            User user = userService.getUser(username);
+            System.out.println("------------"+user+"----------");
+            System.out.println("------------"+userDetail+"----------");
+            userDetail.setUser(user);
+            userService.addDetail(userDetail);
+            return SUCCESS;
+        }else {
+            this.returnUrl = "/user/loan.jsp";
+            return "login";
+        }
     }
 
     public void setLoanString(String loanString) {

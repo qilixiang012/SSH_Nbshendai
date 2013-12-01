@@ -19,6 +19,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @Component(value = "projectServiceImpl")
+@Scope("prototype")
 public class ProjectServiceImpl implements ProjectService{
     ProjectDao projectDao;
 

@@ -9,7 +9,7 @@
 <%@taglib prefix="s" uri="/struts-tags" %>
 <%
     if (session.getAttribute("login") != Boolean.TRUE) {
-        response.sendRedirect("/user/login.jsp");
+        response.sendRedirect("/user/login.jsp?returnUrl=user/loan.jsp");
         return;
     }
 
@@ -29,7 +29,9 @@
         <li id="Project"><a href="Project_listLoans">我要投资</a></li>
         <li id="Loan"><a href="/user/loan.jsp">我要融资</a></li>
         <li id="Account"><a href="">我的账户</a></li>
-        <li id="signout"><a href="User_signout">退出登录</a></li>
+        <s:if test="#session.login">
+            <li id="signout"><a href="User_signout">退出登录</a></li>
+        </s:if>
     </ul>
     <ul>
         <li></li>
@@ -37,7 +39,7 @@
     </ul>
 </div>
 
-<form action="User_loan" method="post">
+<form action="Project_loan" method="post">
     企业名称：<input type="text" name="userDetail.company"/><br>
     联系人： <input type="text" name="userDetail.contact"/><br>
     手机号码： <input type="text" name="userDetail.phone"/><br>

@@ -17,8 +17,10 @@
         <action name="*_*" class="{1}Action" method="{2}">
             <result type="dispatcher">/front/{1}_{2}.jsp</result> <!--服务器跳转-->
             <result name="error" type="redirect">/user/error.jsp</result>
-            <result name="login" type="redirect">/user/login.jsp</result>
+            <result name="input" type="dispatcher">${returnUrl}</result>
+            <result name="login" type="redirect">/user/login.jsp?returnUrl=${returnUrl}</result>
             <result name="redirectAction" type="redirectAction">${returnUrl}</result>
+            <result name="redirect" type="redirect">${returnUrl}</result>
             <result name="chain" type="chain">${returnUrl}</result>
         </action>
     </package>
